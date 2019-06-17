@@ -1,0 +1,4 @@
+<div class="banner">
+<a href="{{ relURL .Site.BaseURL }}"{{ if not .Site.Params.banner }} class="text"{{ end }}>
+{{.Site.Title}}</a>
+</div>

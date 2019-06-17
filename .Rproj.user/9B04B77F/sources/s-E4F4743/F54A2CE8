@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1560784903032.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "F54A2CE8",
+    "lastKnownWriteTime" : 1560785065,
+    "last_content_update" : 1560785065475,
+    "path" : "~/Documents/news-r/blog/themes/hugo-xmag/static/css/fonts.css",
+    "project_path" : "themes/hugo-xmag/static/css/fonts.css",
+    "properties" : {
+        "cursorPosition" : "10,1",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "css"
+}
