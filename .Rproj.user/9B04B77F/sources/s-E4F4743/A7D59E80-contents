@@ -1,4 +1,0 @@
-<div class="banner">
-<a href="{{ relURL .Site.BaseURL }}"{{ if not .Site.Params.banner }} class="text"{{ end }} style="color:#247BA0;">
-{{.Site.Title}}</a>
-</div>
