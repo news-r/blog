@@ -3,6 +3,6 @@ author: John Coene
 title: About this blog
 ---
 
-# Blog
+This is [news-r'](https://news-r.org) blog, an initiative promoting press scrutiny and freedom of expression.
 
-In this blog we try to share ideas and use cases of [news-r](https://news-r.org).
+The aim of the blog is to provide examples of what can be achieved using the various [open-source software](https://news-r.org/#/software) made available by the initiative.

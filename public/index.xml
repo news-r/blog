@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Hugo XMag on news-r</title>
+    <title>blog on news-r</title>
     <link>/</link>
-    <description>Recent content in Hugo XMag on news-r</description>
+    <description>Recent content in blog on news-r</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 01 Jan 2019 00:00:00 +0200</lastBuildDate>
@@ -17,7 +17,7 @@
       <pubDate>Tue, 01 Jan 2019 00:00:00 +0200</pubDate>
       
       <guid>/post/2019/01/01/hello-world/</guid>
-      <description> Hello  </description>
+      <description>r-news’ first blog post 🎉</description>
     </item>
     
     <item>
@@ -26,7 +26,8 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/about/</guid>
-      <description>Blog In this blog we try to share ideas and use cases of news-r.</description>
+      <description>This is news-r&amp;rsquo; blog, an initiative promoting press scrutiny and freedom of expression.
+The aim of the blog is to provide examples of what can be achieved using the various open-source software made available by the initiative.</description>
     </item>
     
   </channel>

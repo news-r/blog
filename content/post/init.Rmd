@@ -10,4 +10,4 @@ tags: ["R Markdown", "plot", "regression"]
 knitr::opts_chunk$set(collapse = TRUE)
 ```
 
-# Hello
+r-news' first blog post 🎉
