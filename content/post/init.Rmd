@@ -18,17 +18,11 @@ We'll use just four packages, [weforum](https://github.com/news-r/weforum) which
 
 First we'll fetch 7,500 articles.
 
-```{r, echo=FALSE}
-load("articles.RData")
-```
-
-```r
+```{r}
 # remotes::install_github("news-r/weforum")
 library(weforum)
 
 articles <- wef_articles_list(pages = 300)
-
-save(articles, file = "articles.RData")
 ```
 
 The articles have 
