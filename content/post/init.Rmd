@@ -1,9 +1,9 @@
 ---
-title: "Hello World"
+title: "Article graph"
 author: "John Coene"
-date: 2019-01-01T00:00:00+02:00
+date: 2019-07-09T00:00:00+02:00
 categories: ["R"]
-tags: ["R Markdown", "plot", "regression"]
+tags: ["R Markdown", "weforum"]
 ---
 
 ```{r setup, include=FALSE}
@@ -11,3 +11,107 @@ knitr::opts_chunk$set(collapse = TRUE)
 ```
 
 r-news' first blog post 🎉
+
+In this post we build a graph from articles of the World Economic Forum's [Agenda](https://www.weforum.org/agenda) where we attempt reveal underlying editorial themes.
+
+We'll use just four packages, [weforum](https://github.com/news-r/weforum) which will allow us to download the articles of the Agenda then we'll use dplyr and purrr to process the data, and finally we'll use [sigmajs](http://sigmajs.john-coene.com) to visualise the graph.
+
+First we'll fetch 7,500 articles.
+
+```{r, echo=FALSE}
+load("articles.RData")
+```
+
+```r
+# remotes::install_github("news-r/weforum")
+library(weforum)
+
+articles <- wef_articles_list(pages = 300)
+
+save(articles, file = "articles.RData")
+```
+
+The articles have 
+
+```{r}
+library(dplyr)
+library(purrr)
+
+ids <- articles %>% 
+  map("id") %>% 
+  unlist()
+
+titles <- articles %>% 
+  map("attributes") %>% 
+  map("title") %>% 
+  unlist()
+
+title_id_keypair <- tibble::tibble(
+  article_id = ids,
+  article_title = titles
+)
+
+edges <- articles %>% 
+  map("relationships") %>% 
+  map("topics") %>% 
+  map("data") %>% 
+  flatten() %>% 
+  map2(ids, function(x, y) {
+    if(length(x))
+      x$article_id <- y
+    return(x)
+  }) %>% 
+  map_dfr(bind_rows)
+
+edges <- edges %>% 
+  left_join(title_id_keypair, by = "article_id")
+
+library(sigmajs)
+
+edges <- edges %>% 
+  select(
+    topic_id = id,
+    topic_title = title,
+    article_id,
+    article_title
+  ) %>% 
+  mutate(
+    topic_id = paste0("topic_", topic_id),
+    article_id = paste0("article_", article_id)
+  ) %>% 
+  distinct() %>% 
+  mutate(id = 1:n()) 
+
+nodes <- edges %>% 
+  select(id = topic_id, name = topic_title) %>% 
+  bind_rows(
+    edges %>% 
+      select(id = article_id, name = article_title)
+  ) %>% 
+  count(id, name) %>% 
+  mutate(
+    type = case_when(
+      grepl("article", id) ~ "article",
+      TRUE ~ "topic"
+    ),
+    color = case_when(
+      type == "article" ~ "#247BA0",
+      TRUE ~ "#FF1654"
+    )
+  )
+
+sigmajs() %>% 
+  sg_nodes(nodes, id, label = name, size = n, color) %>% 
+  sg_edges(edges, id, source = topic_id, target = article_id) %>% 
+  sg_settings(
+    minNodeSize = 1,
+    maxNodeSize = 5,
+    edgeColor = "default",
+    defaultEdgeColor = "rgba(211, 211, 211, 0.2)",
+    batchEdgesDrawing = TRUE
+  ) %>% 
+  # sg_cluster(colors = c("#247BA0", "#70C1B3", "#B2DBBF", "#F3FFBD", "#FF1654")) %>% 
+  sg_force_start() %>% 
+  sg_force_stop(25000) %>% 
+  sg_neighbours()
+```
