@@ -8,10 +8,19 @@ tags: ["R Markdown", "weforum"]
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE)
+library(gensimr)
+library(webhoser)
 
+load("./hk_articles.RData")
+
+word2vec <- load_word2vec("./hk_articles.model")
+
+# specify python3
 os <- Sys.info()["sysname"]
 if(os == "Darwin") 
   reticulate::use_python("/usr/local/bin/python3", required = TRUE)
+else
+  reticulate::use_python("/usr/bin/python3", required = TRUE)
 ```
 
 r-news' first blog post 🎉
@@ -20,7 +29,7 @@ In this blog post we gather coverage on [anti-extradition bill protests](https:/
 
 First we collect 1,000 articles on the protests using [webhoser](https://webhoser.news-r.org/).
 
-```{r}
+```r
 library(webhoser)
 
 hk_articles <- wh_news(
@@ -29,4 +38,43 @@ hk_articles <- wh_news(
   ) %>% 
   wh_paginate(9) %>% # 9 pages + initial query
   wh_collect()
+```
+
+This returns 10 pages of results (an initial query and additional 9 pages). We can clean up the documents; we
+
+```r
+library(gensimr)
+
+corpus <- preprocess(hk_articles$text)
+
+# create model
+word2vec <- model_word2vec(
+  size = 300L, 
+  window = 4L,  
+  workers = 2L,
+  negative = 15L,
+  min_count = 20L,
+  ns_exponent = 0.75
+)
+word2vec$build_vocab(corpus) 
+word2vec$init_sims(replace = TRUE)
+word2vec$save("./hk_articles.model") # save
+
+words <- word2vec$wv$index2entity %>% 
+  reticulate::py_to_r() %>% 
+  tibble::tibble(
+    word = .
+  )
+vectors <- wrap(word2vec, word2vec$wv$vocab) # extrac vectors
+
+# make matrix
+matrix <- reticulate::py_to_r(vectors)
+
+tsne <- Rtsne::Rtsne(matrix) # Run t-sne
+tsne$Y %>% 
+  tibble::as_tibble() %>% 
+  purrr::set_names(c("x", "y")) %>%
+  dplyr::bind_cols(words) %>%  
+  g2r::g2(g2r::asp(x, y, tooltip = word)) %>% 
+  g2r::fig_point()
 ```
