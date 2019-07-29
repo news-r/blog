@@ -8,104 +8,25 @@ tags: ["R Markdown", "weforum"]
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE)
+
+os <- Sys.info()["sysname"]
+if(os == "Darwin") 
+  reticulate::use_python("/usr/local/bin/python3", required = TRUE)
 ```
 
 r-news' first blog post 🎉
 
-In this post we build a graph from articles of the World Economic Forum's [Agenda](https://www.weforum.org/agenda) where we attempt reveal underlying editorial themes.
+In this blog post we gather coverage on [anti-extradition bill protests](https://en.wikipedia.org/wiki/2019_Hong_Kong_anti-extradition_bill_protests) taking place in Honk Kong to build word embeddings using Word2Vec which we then reduce with t-sne.
 
-We'll use just four packages, [weforum](https://github.com/news-r/weforum) which will allow us to download the articles of the Agenda then we'll use dplyr and purrr to process the data, and finally we'll use [sigmajs](http://sigmajs.john-coene.com) to visualise the graph.
-
-First we'll fetch 7,500 articles.
+First we collect 1,000 articles on the protests using [webhoser](https://webhoser.news-r.org/).
 
 ```{r}
-# remotes::install_github("news-r/weforum")
-library(weforum)
+library(webhoser)
 
-articles <- wef_articles_list(pages = 300)
-```
-
-The articles have 
-
-```{r}
-library(dplyr)
-library(purrr)
-
-ids <- articles %>% 
-  map("id") %>% 
-  unlist()
-
-titles <- articles %>% 
-  map("attributes") %>% 
-  map("title") %>% 
-  unlist()
-
-title_id_keypair <- tibble::tibble(
-  article_id = ids,
-  article_title = titles
-)
-
-edges <- articles %>% 
-  map("relationships") %>% 
-  map("topics") %>% 
-  map("data") %>% 
-  flatten() %>% 
-  map2(ids, function(x, y) {
-    if(length(x))
-      x$article_id <- y
-    return(x)
-  }) %>% 
-  map_dfr(bind_rows)
-
-edges <- edges %>% 
-  left_join(title_id_keypair, by = "article_id")
-
-library(sigmajs)
-
-edges <- edges %>% 
-  select(
-    topic_id = id,
-    topic_title = title,
-    article_id,
-    article_title
+hk_articles <- wh_news(
+    q = '"Hong Kong" AND ("protest" OR "protests") is_first:true language:english site_type:news',
+    ts = (Sys.time() - (30 * 24 * 60 * 60))
   ) %>% 
-  mutate(
-    topic_id = paste0("topic_", topic_id),
-    article_id = paste0("article_", article_id)
-  ) %>% 
-  distinct() %>% 
-  mutate(id = 1:n()) 
-
-nodes <- edges %>% 
-  select(id = topic_id, name = topic_title) %>% 
-  bind_rows(
-    edges %>% 
-      select(id = article_id, name = article_title)
-  ) %>% 
-  count(id, name) %>% 
-  mutate(
-    type = case_when(
-      grepl("article", id) ~ "article",
-      TRUE ~ "topic"
-    ),
-    color = case_when(
-      type == "article" ~ "#247BA0",
-      TRUE ~ "#FF1654"
-    )
-  )
-
-sigmajs() %>% 
-  sg_nodes(nodes, id, label = name, size = n, color) %>% 
-  sg_edges(edges, id, source = topic_id, target = article_id) %>% 
-  sg_settings(
-    minNodeSize = 1,
-    maxNodeSize = 5,
-    edgeColor = "default",
-    defaultEdgeColor = "rgba(211, 211, 211, 0.2)",
-    batchEdgesDrawing = TRUE
-  ) %>% 
-  # sg_cluster(colors = c("#247BA0", "#70C1B3", "#B2DBBF", "#F3FFBD", "#FF1654")) %>% 
-  sg_force_start() %>% 
-  sg_force_stop(25000) %>% 
-  sg_neighbours()
+  wh_paginate(9) %>% # 9 pages + initial query
+  wh_collect()
 ```
