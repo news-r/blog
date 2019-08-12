@@ -18,8 +18,9 @@
       
       <guid>/post/2019/07/09/article-graph/</guid>
       <description>r-news’ first blog post 🎉
-In this post we build a graph from articles of the World Economic Forum’s Agenda where we attempt reveal underlying editorial themes.
-We’ll use just four packages, weforum which will allow us to download the articles of the Agenda then we’ll use dplyr and purrr to process the data, and finally we’ll use sigmajs to visualise the graph.</description>
+In this blog post we gather coverage on anti-extradition bill protests taking place in Honk Kong to build a Latent Dirichlet Allocation model.
+First we collect 1,000 articles on the protests using webhoser.
+library(webhoser) hk_articles &amp;lt;- wh_news( q = &amp;#39;&amp;quot;Hong Kong&amp;quot; AND (&amp;quot;protest&amp;quot; OR &amp;quot;protests&amp;quot;) is_first:true language:english site_type:news&amp;#39;, ts = (Sys.time() - (30 * 24 * 60 * 60)) ) %&amp;gt;% wh_paginate(9) %&amp;gt;% # 9 pages + initial query wh_collect() This returns 10 pages of results (an initial query and additional 9 pages).</description>
     </item>
     
   </channel>

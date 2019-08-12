@@ -12,57 +12,47 @@ library(gensimr)
 library(webhoser)
 
 load("./hk_articles.RData")
-
-lda_model <- load_word2vec("./hk_articles.model")
-
-# specify python3
-os <- Sys.info()["sysname"]
-if(os == "Darwin") 
-  reticulate::use_python("/usr/local/bin/python3", required = TRUE)
-else
-  reticulate::use_python("/usr/bin/python3", required = TRUE)
 ```
 
 r-news' first blog post 🎉
 
-In this blog post we gather coverage on [anti-extradition bill protests](https://en.wikipedia.org/wiki/2019_Hong_Kong_anti-extradition_bill_protests) taking place in Honk Kong to build a Latent Dirichlet Allocation model.
+In this blog post we gather coverage on [anti-extradition bill protests](https://en.wikipedia.org/wiki/2019_Hong_Kong_anti-extradition_bill_protests) ...
 
-First we collect 1,000 articles on the protests using [webhoser](https://webhoser.news-r.org/).
+First we collect 7,700 articles on the protests using [webhoser](https://webhoser.news-r.org/) (these were all the "high confidence" articles webhose.io could find).
 
 ```r
 library(webhoser)
 
 hk_articles <- wh_news(
     q = '"Hong Kong" AND ("protest" OR "protests") is_first:true language:english site_type:news',
-    ts = (Sys.time() - (30 * 24 * 60 * 60))
+    ts = (Sys.time() - (30 * 24 * 60 * 60)),
+    accuracy = "high",
+    highlight = TRUE
   ) %>% 
-  wh_paginate(9) %>% # 9 pages + initial query
+  wh_paginate(99) %>% # 99 pages + initial query = 100 pages
   wh_collect()
 ```
 
 This returns 10 pages of results (an initial query and additional 9 pages). We can clean up the documents; we
 
-```r
-library(gensimr)
+```{r}
+library(word2vec.r)
 
-# preprocess
-corpus <- preprocess(hk_articles$text)
-dictionary <- corpora_dictionary(corpus)
-corpora <- doc2bow(dictionary, corpus)
+setup_word2vec()
 
-# matrix market
-corpus_mm <- serialize_mmcorpus(corpora)
+# VERY basic preprocessing
+# to lower case all words
+# remove punctuation
+# collapse to a single string
+preprocess <- function(txt){
+  txt <- tolower(txt)
+  txt <- gsub("[^[:alnum:][:space:]]", " ", txt)
+  txt <- gsub("[[:space:]]+", " ", txt)
+  trimws(txt)
+}
 
-# tf-idf
-tfidf_model <- model_tfidf(corpus_mm)
-corpus_tfidf <- wrap(tfidf_model, corpora)
+articles <- preprocess(hk_articles$text)
 
-# build model
-lda_model <- model_lda(
-  corpus_tfidf,
-  id2word = dictionary, 
-  num_topics = 50L
-)
-
-vis <- prepare_ldavis(lda_model, corpora, dictionary)
+model_path <- word2vec(articles, alpha = 0.02)
+model <- word_vectors(model_path)
 ```
